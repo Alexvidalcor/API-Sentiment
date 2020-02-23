@@ -1,7 +1,7 @@
 from Src.mongoThings import *
 
 
-def findThings(array, method = "Users", style = "Position", secret=[], length=3):
+def findThings(array, method = "Users", style = "Position", secret=[], length=3,create=True):
 
     #Seleccionar Database
     if method == "Users":
@@ -30,11 +30,14 @@ def findThings(array, method = "Users", style = "Position", secret=[], length=3)
     #Creación de nuevo usuario si no existiera
     except IndexError:
         try:
-            from Src.create import createUser
-            newUser = createUser(array[0])
-            result.append(newUser)
-            array.remove(array[0])
-            findThings(array, method= method, style = style,secret=result,length=length)
+            if create == True:
+                from Src.create import createUser
+                newUser = createUser(array[0])
+                result.append(newUser)
+                array.remove(array[0])
+                findThings(array, method= method, style = style,secret=result,length=length)
+            else:
+                raise ValueError("Introducción errónea de usuario")
         except IndexError:
             #Error de retorno
             return result

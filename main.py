@@ -48,13 +48,22 @@ def AddingUser(chat_id):
     return addUser(chat_id, arrayUsers)
 
 @app.route('/chat/<chat_id>/addmessage', methods=['POST'])
-def AddingChat(chat_id):
-    return addMessage(chat_id)
+def AddingMessage(chat_id):
+    username = request.args.get('username')
+    text = dict(request.json)
+    body = text["text"]
+    bodyDef = []
+    body = bodyDef.append(body)
+    return addMessage(chat_id, username, bodyDef)
 
-# @app.route(/chat/<chat_id>/list)
-# def getList(chat_id):
-#     return 
+@app.route('/chat/<chat_id>/list')
+def getList(chat_id):
+    simplePet = request.args.get('simple')
+    return getMessages(chat_id, param=simplePet)
 
+@app.route('/chat/<chat_id>/sentiment')
+def getSentiment(chat_id):
+    return getSentiments(chat_id)
 
 
 app.run("0.0.0.0", 4500, debug=True)

@@ -1,8 +1,10 @@
 from Src.idGenerator import *
 from Src.finding import *
 from Src.mongoThings import *
+from Src.errorHandler import *
 
 from bson.objectid import ObjectId
+import json
 
 # @jsonErrorHandler
 def createUser(username):
@@ -66,27 +68,71 @@ def addUser(chat_id, array):
     for element in userSearch:
         dbC.update({"_id":idLocated[-1]}, {"$addToSet":{"idUsers":element}})
 
-    # #Devolvemos el ID del chat 
+    #Devolvemos el ID del chat 
     return dumps(int(chat_id))
 
     
-def addMessage(chat_id):
+def addMessage(chat_id, username, text):
 
+    #Seleccionamos database
     db = pickDB(method="Chats")
 
-    #Generamos nueva UserID
-    newUser = createUser(db, "Pepe")
+    #Localizamos el ID del username introducido (falta raise cuando duplicados)
+    lengthArray = len(username)
+    username = username.split("%/&$")
+    userSearch = findThings(username, length=lengthArray,create=False)
+    userSearch = userSearch[-1]
 
-    #Seleccionamos el chat donde realizar la inserción
-  
-    selectId = [i for i in db["Chats"].find({"_id": ObjectId('5e500efeae1621687a157a91')})][0]
+    #Chequeo de usuarios existentes
+    checkExist(userSearch,chat_id)
+
+    #Localizamos el ID del chat para realizar el update
+    idLocated = findThings(chat_id, method = "Chats", style="_id")
+    idLocated = idLocated[-1]
+
+    #¿El usuario ya ha publicado algún mensaje en dicho chat?
+    textUser = checkExist(userSearch,chat_id, method="Messages")
+    print(textUser)
 
     #Realizamos la inserción
-
-    selectId2 = selectId["_id"]
-
-    db["Chats"].update({"_id":selectId["_id"]}, {"$addToSet":{"idUsers":newUser}})
-
+    print(text)
+    if textUser == False:
+        db.update({"_id":idLocated}, {"$push":{"messages":{"user_id":userSearch, "message":text}}})
+    elif textUser == True:
+        text = str(text[0])
+        db.update({"_id":idLocated, "messages.user_id":userSearch}, {"$push":{"messages.$.message":text}})
+       
     #Devolvemos el ID del chat 
+    return dumps(chat_id)
 
-    return dumps(selectId2)
+
+def getMessages(chat_id, param="False"):
+
+    #Seleccionamos database
+    db = pickDB(method="Chats")
+
+    #Ejecutamos la query simplificada si procede
+    if param == "True":
+        filter = {"Position":"0"}
+        projection = {"messages.message":1,"_id":0}
+        messages1 = db.find(filter=filter,projection=projection)
+
+        messages1 = list(messages1)[0]["messages"]
+        totalMessages = [element["message"] for element in messages1]
+        totalMessages = [value for element in totalMessages for value in element]
+
+        return json.dumps(totalMessages)
+
+    #Ejecutamos la query general
+    filter = {"Position":f"{chat_id}"}
+    projection = {"messages":1,"_id":0}
+    messages2 = db.find(filter=filter,projection=projection)
+
+    return json.dumps(list(messages2))
+
+
+def getSentiment(chat_id):
+
+    #Seleccionamos database
+    db = pickDB(method="Chats")
+
