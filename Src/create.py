@@ -76,7 +76,7 @@ def addMessage(chat_id, username, text):
 
     #Seleccionamos database
     db = pickDB(method="Chats")
-
+    
     #Localizamos el ID del username introducido (falta raise cuando duplicados)
     lengthArray = len(username)
     username = username.split("%/&$")
@@ -92,10 +92,8 @@ def addMessage(chat_id, username, text):
 
     #¿El usuario ya ha publicado algún mensaje en dicho chat?
     textUser = checkExist(userSearch,chat_id, method="Messages")
-    print(textUser)
 
     #Realizamos la inserción
-    print(text)
     if textUser == False:
         db.update({"_id":idLocated}, {"$push":{"messages":{"user_id":userSearch, "message":text}}})
     elif textUser == True:
@@ -113,7 +111,7 @@ def getMessages(chat_id, param="False"):
 
     #Ejecutamos la query simplificada si procede
     if param == "True":
-        filter = {"Position":"0"}
+        filter = {"Position":f"{chat_id}"}
         projection = {"messages.message":1,"_id":0}
         messages1 = db.find(filter=filter,projection=projection)
 
@@ -131,8 +129,12 @@ def getMessages(chat_id, param="False"):
     return json.dumps(list(messages2))
 
 
-def getSentiment(chat_id):
+def getSentiments(chat_id):
 
     #Seleccionamos database
     db = pickDB(method="Chats")
+
+    allMessages = getMessages(chat_id, param="True")
+
+    print(allMessages)
 

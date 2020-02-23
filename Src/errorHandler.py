@@ -34,7 +34,9 @@ def checkExist(array, _id, method="Chats"):
 
     if method == "Messages":
         try:
-            filter = {"messages.user_id":f"{array}"}
+            # filter = {"messages.user_id":f"{array}"}
+
+            filter = {"$and": [{"Position": f"{_id}"}, {"messages.user_id":f"{array}"}]}
             projection = {"Position": 1,"_id":0}
             limit = 1
             sort = list({'_id': -1}.items())
