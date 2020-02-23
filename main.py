@@ -63,7 +63,8 @@ def getList(chat_id):
 
 @app.route('/chat/<chat_id>/sentiment')
 def getSentiment(chat_id):
-    return getSentiments(chat_id)
+    alternative = request.args.get('alter')
+    return getSentiments(chat_id,alternative)
 
 
 app.run("0.0.0.0", 4500, debug=True)

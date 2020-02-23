@@ -2,6 +2,7 @@ from Src.idGenerator import *
 from Src.finding import *
 from Src.mongoThings import *
 from Src.errorHandler import *
+from Src.translator import *
 
 from bson.objectid import ObjectId
 import json
@@ -76,7 +77,7 @@ def addMessage(chat_id, username, text):
 
     #Seleccionamos database
     db = pickDB(method="Chats")
-    
+
     #Localizamos el ID del username introducido (falta raise cuando duplicados)
     lengthArray = len(username)
     username = username.split("%/&$")
@@ -104,13 +105,13 @@ def addMessage(chat_id, username, text):
     return dumps(chat_id)
 
 
-def getMessages(chat_id, param="False"):
+def getMessages(chat_id, simple="False", param = "cadena"):
 
     #Seleccionamos database
     db = pickDB(method="Chats")
 
     #Ejecutamos la query simplificada si procede
-    if param == "True":
+    if simple == "True":
         filter = {"Position":f"{chat_id}"}
         projection = {"messages.message":1,"_id":0}
         messages1 = db.find(filter=filter,projection=projection)
@@ -119,22 +120,45 @@ def getMessages(chat_id, param="False"):
         totalMessages = [element["message"] for element in messages1]
         totalMessages = [value for element in totalMessages for value in element]
 
-        return json.dumps(totalMessages)
+        if param == "cadena":
+            return json.dumps(list(totalMessages))
+        if param == "lista":
+            return list(totalMessages)
 
     #Ejecutamos la query general
     filter = {"Position":f"{chat_id}"}
     projection = {"messages":1,"_id":0}
     messages2 = db.find(filter=filter,projection=projection)
 
-    return json.dumps(list(messages2))
+    if param == "cadena":
+        return json.dumps(list(messages2))
+    if param == "lista":
+        return list(messages2) 
 
 
-def getSentiments(chat_id):
-
+def getSentiments(chat_id, alter="False"):
     #Seleccionamos database
     db = pickDB(method="Chats")
 
-    allMessages = getMessages(chat_id, param="True")
+    #Tokenización y selección de palabras útiles
+    allMessages = getMessages(chat_id, simple="True", param="lista")
+    textTokens = tokenize(allMessages)
 
-    print(allMessages)
-
+    #Traducción de mensajes
+    translated = transText(allMessages)
+ 
+    #Si la traducción falla, los resultados serán menos precisos
+    if translated == False: 
+        textWork = textTokens
+        if alter == "True":
+            analysis = sentimentAnalysis(textWork)
+            return json.dumps(analysis)
+        analysis = objectiveAnalysis(textWork)
+        return json.dumps(analysis)
+    elif translated != False:
+        textWork = translated
+        if alter == "True":
+            analysis = objectiveAnalysis(textWork)
+            return json.dumps(analysis)
+        analysis = sentimentAnalysis(textWork)
+        return json.dumps(analysis)

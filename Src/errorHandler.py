@@ -20,7 +20,6 @@ def checkExist(array, _id, method="Chats"):
     db = pickDB(method="Chats")
 
     # Ejecución de Query
-
     if method == "Chats":
         try:
             filter = {"$and": [{"Position": f"{_id}"}, {"idUsers": f"{array}"}]}
