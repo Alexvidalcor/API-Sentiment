@@ -218,10 +218,12 @@ def recomendator(user_id):
     sim_df = pd.DataFrame(similarity_matrix, columns=docs.keys(), index=docs.keys())
 
     np.fill_diagonal(sim_df.values, 0)
-
-    firstUser = sim_df.idxmax()[1]
-    secondUser = sim_df.idxmax()[2]
-    thirdUser = sim_df.idxmax()[3]
+    try:
+        firstUser = sim_df.idxmax()[1]
+        secondUser = sim_df.idxmax()[2]
+        thirdUser = sim_df.idxmax()[3]
+    except IndexError:
+        return json.dumps("No hay suficientes usuarios para recomendar")
 
     total = {user_id: [firstUser, secondUser,thirdUser]}
 
