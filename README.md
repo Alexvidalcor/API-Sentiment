@@ -13,9 +13,6 @@ _El resto de carpetas siguen la denominación estándar para el tipo de datos qu
 
 ## Uso de 'main.py' 🔧
 
-
-* **Inicio:**
-
 _Ejecucion de programa:'path/python3 main.py'_
 
 _Ejecución de Informe en Jupyter Notebook: 'path/jupyter-notebook Demo.py'_
