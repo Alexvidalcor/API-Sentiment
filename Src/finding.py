@@ -53,3 +53,33 @@ def findThings(array, method = "Users", style = "Position", secret=[], length=3,
 
   
     return result[-length:]
+
+
+def findMessages(user_id):
+
+    #Seleccionamos Database
+    db = pickDB(method = "Chats")
+
+    #Realizamos query principal
+    filter = {"messages.user_id":f"{user_id}"}
+    projection = {"messages.user_id":1,"messages.message":1,"_id":0}
+    userMessages = db.find(filter=filter,projection=projection)
+
+    #Filtramos contenidos en base al id proporcionado
+    first = list(userMessages)
+
+    messagesDef = []
+    try:
+        for element in first:
+            intro1 = element["messages"]
+            intro2 = intro1
+            for element2 in intro2:
+                if element2["user_id"] == f"{user_id}":
+                    messagesDef.append(element2["message"])
+
+        return {user_id:messagesDef[0]}
+
+    except:
+        return None
+
+    

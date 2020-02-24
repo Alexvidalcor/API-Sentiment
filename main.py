@@ -16,6 +16,7 @@
 from flask import Flask, request
 from pymongo import MongoClient
 from bson.json_util import dumps
+import json
 
 from Src.create import *
 
@@ -63,16 +64,33 @@ def AddingMessage(chat_id):
 @app.route('/chat/<chat_id>/list')
 def getList(chat_id):
     simplePet = request.args.get('simple')
-    return getMessages(chat_id, simple=simplePet)
+    exJson = request.args.get('exportJson')
+    output = getMessages(chat_id, simple=simplePet)
+    if exJson == "True":
+        writeFile =open('Output/chatList.json', 'w')
+        writeFile.write(output)
+        writeFile.close()
+    return output
 
 @app.route('/chat/<chat_id>/sentiment')
 def getSentiment(chat_id):
     alternative = request.args.get('alter')
-    return getSentiments(chat_id,alternative)
+    exJson = request.args.get('exportJson')
+    output = getSentiments(chat_id,alternative)
+    if exJson == "True":
+        writeFile = open('Output/sentimentChat.json', 'w')
+        writeFile.write(output)
+        writeFile.close()
+    return output
 
 @app.route('/user/<user_id>/recommend')
-def recomendator(user_id):
-    return getSentiments(user_id)
+def getRecom(user_id):
+    exJson = request.args.get('exportJson')
+    output = recomendator(user_id)
+    if exJson == "True":
+        writeFile = open('Output/sentimentChat.json', 'w')
+        writeFile.write(output)
+        writeFile.close()
+    return output
 
-#COSAS PENDIENTES: DEFINIR SI GUARDAR JSON EN LOS ENDPOINTS DE JSON
 app.run("0.0.0.0", 4500, debug=True)

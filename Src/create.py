@@ -6,8 +6,11 @@ from Src.translator import *
 
 from bson.objectid import ObjectId
 import json
+import pandas as pd
+import numpy as np
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity as distance
 
 # @jsonErrorHandler
 def createUser(username):
@@ -171,9 +174,55 @@ def getSentiments(chat_id, alter="False"):
 def recomendator(user_id):
 
     #Seleccionamos database
-    db = pickDB(method="Chats")
-
+    dbC = pickDB(method="Chats")
+    dbU = pickDB()
 
     #Obtención de todos los mensajes de un usuario determinado
+    # mainUser = findMessages(user_id)
 
-    userMessages = db.find(filter=filter,projection=projection)
+    #Obtención de todos los usuarios que han participado en chats menos el principal
+
+    allUsers = dbU.distinct("Position")
+    allUsers = sorted(allUsers)
+
+    #Extracción de mensajes de todos los usuarios menos el principal
+    result = [findMessages(element) for element in allUsers]
+
+    result2 = []
+    for element in result:
+        if element != None:
+            result2.append(element)
+
+    #Fusión de values
+    newDict = {}
+
+    for element in result2:
+        for key, value in element.items():
+            test = value
+            test2 = " ".join(test)
+            newDict[key] = test2
+    
+    docs = newDict
+
+    count_vectorizer = CountVectorizer()
+    sparse_matrix = count_vectorizer.fit_transform(docs.values())
+    m = sparse_matrix.todense()
+
+    doc_term_matrix = sparse_matrix.todense()
+    df = pd.DataFrame(doc_term_matrix, 
+                  columns=count_vectorizer.get_feature_names(), 
+                  index=docs.keys())
+
+    similarity_matrix = distance(df,df)
+
+    sim_df = pd.DataFrame(similarity_matrix, columns=docs.keys(), index=docs.keys())
+
+    np.fill_diagonal(sim_df.values, 0)
+
+    firstUser = sim_df.idxmax()[1]
+    secondUser = sim_df.idxmax()[2]
+    thirdUser = sim_df.idxmax()[3]
+
+    total = {user_id: [firstUser, secondUser,thirdUser]}
+
+    return json.dumps(total)
