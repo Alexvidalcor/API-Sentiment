@@ -7,6 +7,8 @@ from Src.translator import *
 from bson.objectid import ObjectId
 import json
 
+from sklearn.feature_extraction.text import CountVectorizer
+
 # @jsonErrorHandler
 def createUser(username):
 
@@ -105,7 +107,7 @@ def addMessage(chat_id, username, text):
     return dumps(chat_id)
 
 
-def getMessages(chat_id, simple="False", param = "cadena"):
+def getMessages(chat_id, simple="False", param="cadena"):
 
     #Seleccionamos database
     db = pickDB(method="Chats")
@@ -121,7 +123,7 @@ def getMessages(chat_id, simple="False", param = "cadena"):
         totalMessages = [value for element in totalMessages for value in element]
 
         if param == "cadena":
-            return json.dumps(list(totalMessages))
+            return json.dumps({"Messages":list(totalMessages)})
         if param == "lista":
             return list(totalMessages)
 
@@ -131,12 +133,13 @@ def getMessages(chat_id, simple="False", param = "cadena"):
     messages2 = db.find(filter=filter,projection=projection)
 
     if param == "cadena":
-        return json.dumps(list(messages2))
+        return json.dumps(list(messages2)[0])
     if param == "lista":
         return list(messages2) 
 
 
 def getSentiments(chat_id, alter="False"):
+
     #Seleccionamos database
     db = pickDB(method="Chats")
 
@@ -155,6 +158,7 @@ def getSentiments(chat_id, alter="False"):
             return json.dumps(analysis)
         analysis = objectiveAnalysis(textWork)
         return json.dumps(analysis)
+
     elif translated != False:
         textWork = translated
         if alter == "True":
@@ -162,3 +166,14 @@ def getSentiments(chat_id, alter="False"):
             return json.dumps(analysis)
         analysis = sentimentAnalysis(textWork)
         return json.dumps(analysis)
+
+
+def recomendator(user_id):
+
+    #Seleccionamos database
+    db = pickDB(method="Chats")
+
+
+    #Obtención de todos los mensajes de un usuario determinado
+
+    userMessages = db.find(filter=filter,projection=projection)

@@ -8,8 +8,7 @@ def idGenerator(method="Users"):
         db = pickDB()
     if method == "Chats":
         db = pickDB(method="Chats")
-
-
+        
     if db.count() == 0:
         return str(0)
     else:
